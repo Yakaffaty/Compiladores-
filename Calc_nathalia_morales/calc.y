@@ -1,15 +1,16 @@
 %{
 void yyerror (char *s);
 int yylex();
-#include <stdio.h>     /* C declarations used in actions */
+#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 int symbols[52];
 int symbolVal(char symbol);
+int dodivision(float a, float b);
 void updateSymbolVal(char symbol, int val);
 %}
 
-%union {int num; char id;}         /* Yacc definitions */
+%union {int num; char id;} 
 %start line
 %token print
 %token exit_command
@@ -24,25 +25,32 @@ void updateSymbolVal(char symbol, int val);
 
 line    : assignment ';'		{;}
 		| exit_command ';'		{exit(EXIT_SUCCESS);}
-		| print exp ';'			{printf("Printing %d\n", $2);}
+		| print exp ';'			{printf("Print_exp %d\n", $2);}
 		| line assignment ';'	{;}
 		| line print exp ';'	{printf("Printing %d\n", $3);}
 		| line exit_command ';'	{exit(EXIT_SUCCESS);}
         ;
 
 assignment : identifier '=' exp  { updateSymbolVal($1,$3); }
-			;
+		;
+
 exp    	: term                  {$$ = $1;}
        	| exp '+' term          {$$ = $1 + $3;}
        	| exp '-' term          {$$ = $1 - $3;}
-       	| exp '/' term          {$$ = $1 / $3;}
+       	| exp '/' term          {$$ = dodivision($1, $3);}
        	| exp '*' term          {$$ = $1 * $3;}
        	;
+
 term   	: number                {$$ = $1;}
 		| identifier			{$$ = symbolVal($1);} 
         ;
 
-%%                     /* C code */
+%% 
+int dodivision(float a, float b)
+{
+	float res = (a/b)*100;
+	return res;
+}
 
 int computeSymbolIndex(char token)
 {
@@ -55,14 +63,12 @@ int computeSymbolIndex(char token)
 	return idx;
 } 
 
-/* returns the value of a given symbol */
 int symbolVal(char symbol)
 {
 	int bucket = computeSymbolIndex(symbol);
 	return symbols[bucket];
 }
 
-/* updates the value of a given symbol */
 void updateSymbolVal(char symbol, int val)
 {
 	int bucket = computeSymbolIndex(symbol);
@@ -70,7 +76,6 @@ void updateSymbolVal(char symbol, int val)
 }
 
 int main (void) {
-	/* init symbol table */
 	int i;
 	for(i=0; i<52; i++) {
 		symbols[i] = 0;
