@@ -6,8 +6,8 @@ int yylex();
 #include <ctype.h>
 int symbols[52];
 int symbolVal(char symbol);
-int dodivision(float a, float b);
-void updateSymbolVal(char symbol, int val);
+float dodivision(float a, float b);
+void updateSymbolVal(char symbol, double val);
 %}
 
 %union {int num; char id;} 
@@ -20,8 +20,6 @@ void updateSymbolVal(char symbol, int val);
 %type <id> assignment
 
 %%
-
-/* descriptions of expected inputs     corresponding actions (in C) */
 
 line    : assignment ';'		{;}
 		| exit_command ';'		{exit(EXIT_SUCCESS);}
@@ -46,9 +44,18 @@ term   	: number                {$$ = $1;}
         ;
 
 %% 
-int dodivision(float a, float b)
-{
-	float res = (a/b)*100;
+float dodivision(float a, float b)
+{	
+	float res;
+	if(b ==0)
+	{
+		printf("No se puede divir dentro de 0");
+		return 0;
+	} 
+	else 
+	{	
+		res=a/b;
+	}
 	return res;
 }
 
@@ -69,7 +76,7 @@ int symbolVal(char symbol)
 	return symbols[bucket];
 }
 
-void updateSymbolVal(char symbol, int val)
+void updateSymbolVal(char symbol, double val)
 {
 	int bucket = computeSymbolIndex(symbol);
 	symbols[bucket] = val;
